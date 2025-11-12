@@ -1,0 +1,24 @@
+# OpenAI Agents SDK (can be replaced with DeepSeek-compatible version)
+openai-agents>=0.5.0
+openai>=1.0.0
+
+# HTTP requests for map APIs
+httpx>=0.27.0
+requests>=2.31.0
+
+# Async support
+aiohttp>=3.9.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-mock>=3.12.0
+
+# Type checking
+mypy>=1.8.0
