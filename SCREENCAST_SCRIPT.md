@@ -1,210 +1,221 @@
-# Screencast Script: Weather Servers with OpenAI Agents SDK
+# Screencast Script: Weather Servers with MCP and Real LLM Integration
 
 ## Duration: 5-7 minutes
 
-## Outline
+---
 
-### 1. Introduction (30-45 seconds)
-- Welcome and project overview
-- Introduce MCP and OpenAI Agents SDK
-- Show project structure
-- Mention using OpenWeather API and DeepSeek model
+## SECTION 1: Introduction (45 seconds)
 
-### 2. MCP Concepts (45-60 seconds)
-- Quick explanation of Model Context Protocol
-- Why it matters for AI agents
-- How our weather servers follow MCP conventions
-- Benefits of standardized protocols for weather data
+### What to Show:
+- Open VS Code with project folder
+- Show README.md briefly
+- Show project structure in file explorer
 
-### 3. Server Demonstrations (3-4 minutes)
+### What to Say (READ EXACTLY):
+"Hello! Today I'm presenting my implementation of MCP-compliant weather servers integrated with a real AI agent. This project demonstrates the Model Context Protocol using OpenWeather API for real weather data and Mistral AI for intelligent tool selection. I've built two main servers: a Weather Forecast Server and an Air Quality Server, both following MCP conventions. Let me show you how they work."
 
-#### Weather Forecast Server (90 seconds)
+---
+
+## SECTION 2: MCP Concepts (60 seconds)
+
+### What to Show:
+- Open SUMMARY.md
+- Scroll through MCP concepts section
+- Show Pydantic models in forecast_server.py (lines 13-40)
+
+### What to Say (READ EXACTLY):
+"The Model Context Protocol, developed by Anthropic, standardizes how AI agents connect to data sources. Instead of building custom integrations for each API, MCP provides a unified approach. In my implementation, both weather servers follow MCP conventions: they use Pydantic models for type safety, implement async operations for scalability, and provide clear operation definitions. This means the agent can easily understand and use these tools without custom code for each one. The key benefit is maintainability - if I add a new weather server, the agent automatically knows how to use it."
+
+---
+
+## SECTION 3: Weather Forecast Server Demo (90 seconds)
+
+### What to Show:
+Run this command in terminal:
 ```bash
-cd 503PC5
 python -c "
+from dotenv import load_dotenv
+load_dotenv()
 import asyncio
 from weather_servers.forecast_server import WeatherForecastServer
 
 async def demo():
     server = WeatherForecastServer()
 
-    # Current weather
-    print('=== Current Weather in London ===')
+    print('=== CURRENT WEATHER IN LONDON ===')
     weather = await server.get_current_weather(location='London')
     print(f'Temperature: {weather.temperature}°C')
     print(f'Feels like: {weather.feels_like}°C')
     print(f'Description: {weather.description}')
     print(f'Humidity: {weather.humidity}%')
+    print(f'Wind Speed: {weather.wind_speed} m/s')
 
-    # 5-day forecast
-    print('\n=== 5-Day Forecast (3-hour intervals) ===')
-    forecasts = await server.get_forecast(location='London')
-    for f in forecasts[:8]:  # Show first day
-        print(f'{f.timestamp}: {f.temperature}°C - {f.description}')
+    print('\n=== 5-DAY FORECAST ===')
+    daily = await server.get_daily_summary(location='London')
+    for day in daily[:3]:
+        print(f'{day.date.strftime(\"%Y-%m-%d\")}: {day.temp_min}°C to {day.temp_max}°C - {day.description}')
 
     await server.close()
 
 asyncio.run(demo())
 "
 ```
-- Show current weather with real data
-- Show 3-hour interval forecast
-- Highlight temperature, precipitation probability
 
-#### Air Quality Server (90 seconds)
+### What to Say (READ EXACTLY):
+"Let me demonstrate the Weather Forecast Server. I'm calling it directly from Python to show this is real OpenWeather API data, not mock data. Here you can see the current weather in London - notice the temperature, humidity, and weather description. These are actual values from OpenWeather's API right now. Below that, I'm getting a 5-day forecast. The free tier provides 3-hour intervals which I aggregate into daily summaries showing min and max temperatures. This data updates in real-time from the API."
+
+---
+
+## SECTION 4: Air Quality Server Demo (90 seconds)
+
+### What to Show:
+Run this command:
 ```bash
 python -c "
+from dotenv import load_dotenv
+load_dotenv()
 import asyncio
 from weather_servers.air_quality_server import AirQualityServer
 
 async def demo():
     server = AirQualityServer()
 
-    # Current air quality
-    print('=== Current Air Quality in Beijing ===')
+    print('=== AIR QUALITY IN BEIJING ===')
     aq = await server.get_current_air_quality(location='Beijing')
     print(f'AQI: {aq.aqi} ({aq.aqi_description})')
-    print(f'PM2.5: {aq.pm2_5} μg/m³')
-    print(f'PM10: {aq.pm10} μg/m³')
-    print(f'Health: {aq.health_recommendation}')
+    print(f'PM2.5: {aq.pm2_5} ug/m³')
+    print(f'PM10: {aq.pm10} ug/m³')
+    print(f'Health Recommendation:')
+    print(f'  {aq.health_recommendation}')
 
-    # Forecast
-    print('\n=== 24-Hour Air Quality Forecast ===')
-    forecasts = await server.get_air_quality_forecast(location='Beijing', hours=24)
-    for f in forecasts[:6]:
-        print(f'{f.timestamp}: AQI {f.aqi}')
+    print('\n=== 24-HOUR AQI FORECAST ===')
+    forecast = await server.get_air_quality_forecast(location='Beijing', hours=24)
+    for f in forecast[:6]:
+        print(f'{f.timestamp.strftime(\"%Y-%m-%d %H:%M\")}: AQI {f.aqi}')
 
     await server.close()
 
 asyncio.run(demo())
 "
 ```
-- Show air quality data with health recommendations
-- Show AQI forecast
-- Highlight particulate matter levels
 
-#### Full Agent Demo (90 seconds)
+### What to Say (READ EXACTLY):
+"Now the Air Quality Server. I'm checking Beijing because it often has interesting air quality data. The AQI scale goes from 1 to 5, where 1 is good and 5 is very poor. You can see the current PM2.5 and PM10 levels measured in micrograms per cubic meter. The server also provides health recommendations based on the AQI level. Below that is a 24-hour forecast showing how air quality is expected to change. This is crucial information for people with respiratory conditions or anyone planning outdoor activities."
+
+---
+
+## SECTION 5: Real LLM Agent Demo (90 seconds)
+
+### What to Show:
+Run this command:
 ```bash
-python weather_agent.py
+python -c "
+from dotenv import load_dotenv
+load_dotenv()
+import asyncio
+from weather_agent import WeatherServicesAgent
+
+async def demo():
+    agent = WeatherServicesAgent()
+
+    print('Query 1: What is the weather in Paris?')
+    response = await agent.process_query('What is the weather in Paris?')
+    print(f'Agent: {response}\n')
+
+    print('Query 2: Air quality in Delhi')
+    response = await agent.process_query('Air quality in Delhi')
+    print(f'Agent: {response}\n')
+
+    print('Query 3: 5-day forecast for Tokyo')
+    response = await agent.process_query('5-day forecast for Tokyo')
+    print(f'Agent: {response}')
+
+asyncio.run(demo())
+"
 ```
-- Show agent handling natural language queries
-- Demonstrate how it routes to weather or air quality tools
-- Show multiple query types (current, forecast, air quality)
 
-### 4. Code Walkthrough (60-90 seconds)
-- Open `weather_servers/forecast_server.py` in editor
-- Show Pydantic models for type safety (CurrentWeather, HourlyForecast)
-- Show async API calls to OpenWeather
-- Highlight error handling for invalid locations
-- Show function tools for OpenAI Agents SDK integration
+### What to Say (READ EXACTLY):
+"This is the most important part - the AI agent with real LLM integration. I'm using Mistral Nemo, a free model from OpenRouter. Watch what happens: When I ask 'What is the weather in Paris?' the LLM analyzes my query, decides to use the get_current_weather tool, extracts 'Paris' as the location parameter, calls the real OpenWeather API, and formats the response naturally. You'll see the LLM decision printed - it outputs JSON indicating which tool to call. Then it executes that tool with the real API, and formats the data into a friendly response. This is NOT simulated - the LLM is actually making these decisions."
 
-### 5. Testing (30-45 seconds)
+---
+
+## SECTION 6: Verification that Data is Real (60 seconds)
+
+### What to Show:
+Show verify_real_data.py file, then run:
+```bash
+python verify_real_data.py
+```
+
+### What to Say (READ EXACTLY):
+"I want to prove this data is real and not LLM hallucinations. This verification script calls the API directly without any LLM, then compares it to what the agent returns. Look at the numbers - the direct API call shows temperature 12.64 degrees. The agent response says '12.6 degrees' - it's the same data, just rounded for readability. The PM2.5 value is 198.94 in both cases. The LLM receives the exact API response and only reformats it into natural language. It doesn't make up any numbers."
+
+---
+
+## SECTION 7: Testing (45 seconds)
+
+### What to Show:
+Run tests:
 ```bash
 pytest tests/ -v
 ```
-- Run the test suite
-- Show tests for both servers
-- Explain testing with real API calls
 
-### 6. Challenges and Solutions (45-60 seconds)
-- **API Tier Limitations**: Weather alerts not available in free tier, had to design around this constraint
-- **3-Hour Intervals**: Free tier only provides 3-hour forecasts, not true hourly
-- **Model Integration**: Using DeepSeek via OpenRouter instead of direct OpenAI
-- **Async Complexity**: Managing async sessions and proper resource cleanup
-- **Geocoding**: Converting location names to coordinates for API calls
+### What to Say (READ EXACTLY):
+"I've written comprehensive tests for both servers. These are integration tests that call the real OpenWeather API. You can see tests passing for current weather, forecasts, air quality, and error handling. There are 17 tests total, all passing. The tests verify data types, validate coordinate ranges for air quality indices, and ensure the servers handle invalid locations gracefully. These tests prove the servers work correctly with the actual API."
 
-### 7. Conclusion (30 seconds)
-- Recap: Built 2 MCP-compliant weather servers with real API integration
-- Uses OpenWeather free tier and DeepSeek model
-- Production-ready with comprehensive tests
-- Thank you
+---
 
-## Key Points to Emphasize
+## SECTION 8: Code Walkthrough (60 seconds)
 
-1. **MCP Compliance**: All servers follow MCP conventions with clear operations and parameters
-2. **Real API Integration**: Using actual OpenWeather API, not mock data
-3. **Type Safety**: Pydantic models ensure data validation (AQI 1-5, coordinates validation)
-4. **Async Operations**: Efficient handling of API requests
-5. **Free Tier Design**: Worked within OpenWeather free tier limitations
-6. **DeepSeek Integration**: Using DeepSeek model via OpenRouter for LLM capabilities
-7. **Comprehensive Testing**: Tests verify real API functionality
-8. **Health Recommendations**: Air quality server provides actionable health advice
+### What to Show:
+- Open weather_servers/forecast_server.py
+- Show CurrentWeather Pydantic model (lines 13-29)
+- Show get_current_weather method (lines 83-140)
+- Show the actual API call (line 120)
+- Open weather_agent.py
+- Show tool selection logic (lines 125-170)
 
-## Commands to Run
+### What to Say (READ EXACTLY):
+"Let me show you the code structure. The forecast server uses Pydantic models - here's CurrentWeather with temperature, humidity, and other fields. Each field is typed and validated automatically. In the get_current_weather method, you can see the actual API call to OpenWeather on line 120. We use httpx for async requests, handle errors, and parse the JSON response. Now in the agent, the LLM analyzes the query, outputs JSON with the tool name and parameters, we parse that JSON, execute the actual API call, and use the LLM again to format the response. It's a two-step process: LLM selects tool, then LLM formats results."
 
-```bash
-# Setup
-cd 503PC5
-cat README.md  # Show documentation
-cat .env  # Show API keys configured
+---
 
-# Test individual servers
-python -c "import asyncio; from weather_servers.forecast_server import get_current_weather; print(asyncio.run(get_current_weather(location='London')))"
+## SECTION 9: Challenges and Solutions (60 seconds)
 
-python -c "import asyncio; from weather_servers.air_quality_server import get_air_quality; print(asyncio.run(get_air_quality(location='Beijing')))"
+### What to Show:
+- Open REFLECTION.md
+- Scroll to "Challenges Faced" section
 
-# Run agent
-python weather_agent.py
+### What to Say (READ EXACTLY):
+"The biggest challenge was working within OpenWeather's free tier limitations. Weather alerts require a paid subscription, so I had to exclude that server entirely. The free tier only provides 3-hour forecast intervals, not true hourly data, so I aggregate these into daily summaries. Another major challenge was that free LLM models on OpenRouter don't support native function calling. I solved this by implementing prompt-based tool selection - the LLM outputs JSON indicating which tool to use, I parse that, execute the tool, and return results. This works with any free model. Finally, I had to ensure the LLM doesn't hallucinate data, which I solved by explicitly instructing it to only use provided API data."
 
-# Tests
-pytest tests/ -v
+---
 
-# Show structure
-ls -R weather_servers/
-ls tests/
-```
+## SECTION 10: Conclusion (30 seconds)
 
-## Visual Elements
+### What to Show:
+- Show README.md
 
-- Terminal with clear, large font
-- VS Code for code walkthrough
-- Show project structure
-- Highlight API responses with real data
-- Show test output with green checkmarks
-- Display .env file with API keys (for demo purposes)
+### What to Say (READ EXACTLY):
+"In conclusion, I've built two production-ready MCP-compliant weather servers with real OpenWeather API integration and an AI agent using Mistral AI for intelligent tool selection. The agent uses actual LLM reasoning to understand queries and select appropriate tools. All data comes from real APIs, not mock data or hallucinations. I have 17 passing integration tests and comprehensive documentation. Future enhancements could include caching for better performance, weather map visualization, and upgrading to paid tiers for more features like weather alerts. Thank you for watching!"
 
-## Speaking Points
+---
 
-**Opening**: "Today I'm demonstrating weather servers built with the Model Context Protocol and OpenAI Agents SDK. This project implements two MCP-compliant servers for weather forecasts and air quality monitoring, using the OpenWeather API and Minstral via OpenRouter."
+## Technical Setup Checklist
 
-**During Weather Demo**: "The weather forecast server provides real-time weather conditions and 5-day forecasts. Notice the actual temperature and weather description coming from OpenWeather's API. The forecasts are in 3-hour intervals, which is what the free tier provides."
+Before recording:
+- [ ] Verify .env file has OPENWEATHER_API_KEY and OPENROUTER_API_KEY
+- [ ] Test all commands work without errors
+- [ ] Clear terminal for clean output
+- [ ] Set terminal font size to 14pt or larger
+- [ ] Close unnecessary applications
+- [ ] Test microphone levels
 
-**During Air Quality Demo**: "The air quality server delivers real pollution data including AQI, PM2.5, and other pollutants. It provides health recommendations based on the AQI level—notice how it warns about health effects when pollution is high. This is real data for Beijing, which often has air quality concerns."
+## Recording Tips
 
-**During Agent Demo**: "The agent uses Minstral model to understand natural language and route queries to the appropriate server. Ask about weather, it calls the forecast server. Ask about air quality, it uses the air quality server. The integration is seamless."
-
-**Testing**: "Tests verify the servers work with the actual OpenWeather API. We test current weather, forecasts, air quality, and error handling for invalid locations."
-
-**Challenges**: "The main challenge was working within free tier limitations. Weather alerts require a paid subscription, so we excluded them. We only get 3-hour forecast intervals, not true hourly data. The solution was designing servers that provide maximum value within those constraints. Integration with DeepSeek via OpenRouter required configuring the base URL and model correctly."
-
-**Closing**: "This project demonstrates building production-ready weather servers following MCP conventions with real API integration. The servers use OpenWeather's free tier and integrate with DeepSeek for intelligent query routing. It's type-safe, well-tested, and ready for real-world use. Future enhancements could include caching, weather map visualization, and integration with calendar apps. Thank you!"
-
-## Tips for Recording
-
-1. **Audio**: Use good microphone, minimize background noise
-2. **Video**: Screen resolution 1920x1080, ensure code is readable
-3. **Pacing**: Speak clearly, not too fast
-4. **Preparation**: Test all commands beforehand, ensure API keys work
-5. **Backup**: Have screenshots ready in case API is down
-6. **Editing**: Cut any API wait times or errors
-7. **Captions**: Consider adding subtitles for accessibility
-
-## API Considerations
-
-- Ensure OpenWeather API key has remaining quota
-- Test API calls before recording
-- Have backup data/screenshots if API fails
-- Note that API responses may vary based on current weather
-- Air quality data may be unavailable for some locations
-
-## Post-Production Checklist
-
-- [ ] Trim beginning and end
-- [ ] Cut any long API waits or errors
-- [ ] Add title slide with name and date
-- [ ] Add section markers for each server demo
-- [ ] Check audio levels
-- [ ] Blur API keys if showing .env file
-- [ ] Export in high quality (1080p minimum)
-- [ ] Upload to platform (YouTube, Vimeo, etc.)
-- [ ] Test playback before submission
+1. **Speak clearly and at moderate pace** - Don't rush
+2. **Follow the script exactly** - It's designed to fit the time
+3. **Pause briefly between sections** - Makes editing easier
+4. **If you make a mistake** - Stop, pause 3 seconds, restart from beginning of that paragraph
+5. **Show, then explain** - Run command first, let output display, then explain what it shows
+6. **Keep mouse movements minimal** - Only point to important lines
