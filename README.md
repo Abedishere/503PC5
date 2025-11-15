@@ -1,37 +1,34 @@
-# Map Servers with OpenAI Agents SDK and MCP
+# Weather Servers with OpenAI Agents SDK and MCP
 
-A comprehensive implementation of map-based services following Model Context Protocol (MCP) conventions, designed to work with OpenAI Agents SDK and compatible with alternative LLM providers like DeepSeek.
+MCP-compliant weather services implementation following Model Context Protocol conventions, designed to work with OpenAI Agents SDK and compatible with DeepSeek via OpenRouter. Uses OpenWeather API (Free Tier).
 
-## 🎯 Overview
+## Overview
 
-This project implements three MCP-compliant map servers:
+This project implements two MCP-compliant weather servers using only **OpenWeather API Free Tier** features:
 
-1. **Geocoding Server** - Convert addresses to coordinates and vice versa
-2. **Routing Server** - Calculate routes, distances, and travel times
-3. **POI Server** - Search for and discover points of interest
+1. **Weather Forecast Server** - Current weather and 5-day forecasts (3-hour intervals)
+2. **Air Quality Server** - Current air quality, pollution data, and forecasts
 
-All servers are integrated into a unified AI agent that can intelligently handle location-based queries.
+All servers are integrated into a unified AI agent using DeepSeek model via OpenRouter.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-map_servers/
-├── geocoding_server.py   # Address ↔ Coordinates conversion
-├── routing_server.py      # Route calculation & navigation
-└── poi_server.py          # Points of interest search
+weather_servers/
+├── forecast_server.py      # Weather forecasts & current conditions
+└── air_quality_server.py   # Air quality & pollution data
 
-agent.py                   # Main agent with all tools integrated
-tests/                     # Comprehensive unit tests
-examples/                  # Demo scripts and usage examples
+weather_agent.py            # Main agent with DeepSeek integration
+tests/                      # Comprehensive unit tests
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.9 or higher
-- pip package manager
-- API keys (optional for mock data)
+- OpenWeather API key (free tier)
+- OpenRouter API key (for DeepSeek model access)
 
 ### Installation
 
@@ -43,96 +40,106 @@ examples/                  # Demo scripts and usage examples
 
 2. **Install dependencies**
    ```bash
-   pip install -r requirements.txt
+   pip install httpx pydantic python-dotenv pytest pytest-asyncio
    ```
 
 3. **Configure environment variables**
    ```bash
    cp .env.example .env
-   # Edit .env with your API keys and configuration
+   # Edit .env with your API keys
    ```
-
-### Configuration for DeepSeek
-
-To use DeepSeek instead of OpenAI:
-
-```bash
-# In your .env file:
-LLM_API_KEY=your_deepseek_api_key
-LLM_BASE_URL=https://api.deepseek.com/v1
-LLM_MODEL=deepseek-chat
-```
 
 ### Running the Agent
 
 ```bash
-python agent.py
+python weather_agent.py
 ```
 
-This will run example queries demonstrating each server's capabilities.
+## Features Available (OpenWeather Free Tier)
 
-## 📖 Usage Examples
+### Weather Forecast Server
 
-### Geocoding Server
+- **Current Weather** - Real-time weather conditions
+  - Temperature, feels like, humidity
+  - Wind speed and direction
+  - Pressure, cloudiness, visibility
+  - Weather description
+
+- **5-Day Forecast** - 3-hour interval forecasts
+  - Up to 40 data points (5 days × 8 intervals/day)
+  - Temperature, precipitation probability
+  - Weather conditions for each interval
+
+- **Daily Summary** - Aggregated daily forecasts
+  - Min/max temperatures per day
+  - Average humidity and wind speed
+  - Precipitation probability
+
+### Air Quality Server
+
+- **Current Air Quality** - Real-time pollution data
+  - Air Quality Index (1-5 scale)
+  - PM2.5 and PM10 particulate matter
+  - CO, NO, NO2, O3, SO2, NH3 levels
+  - Health recommendations
+
+- **Air Quality Forecast** - Future pollution predictions
+  - Up to 120 hours forecast
+  - AQI trends
+  - PM2.5, PM10, O3 predictions
+
+## API Limitations (Free Tier)
+
+- 60 API calls/minute
+- 1,000,000 calls/month
+- Weather alerts **NOT AVAILABLE** (requires One Call API 3.0 subscription)
+- Hourly forecasts limited to 3-hour intervals
+- Maximum 5-day forecast range
+
+## Usage Examples
+
+### Weather Forecast Server
 
 ```python
-from map_servers.geocoding_server import GeocodingServer
+from weather_servers.forecast_server import WeatherForecastServer
 
-server = GeocodingServer()
+server = WeatherForecastServer()
 
-# Forward geocoding (address to coordinates)
-results = await server.forward_geocode("Empire State Building")
-print(f"Coordinates: {results[0].latitude}, {results[0].longitude}")
+# Current weather
+weather = await server.get_current_weather(location="London")
+print(f"Temperature: {weather.temperature}°C")
+print(f"Description: {weather.description}")
 
-# Reverse geocoding (coordinates to address)
-result = await server.reverse_geocode(40.7484, -73.9857)
-print(f"Address: {result.address}")
+# 3-hour interval forecast
+forecasts = await server.get_forecast(location="Paris")
+for forecast in forecasts[:5]:
+    print(f"{forecast.timestamp}: {forecast.temperature}°C")
+
+# Daily summary
+daily = await server.get_daily_summary(location="Tokyo")
+for day in daily:
+    print(f"{day.date.date()}: {day.temp_min}-{day.temp_max}°C")
 
 await server.close()
 ```
 
-### Routing Server
+### Air Quality Server
 
 ```python
-from map_servers.routing_server import RoutingServer
+from weather_servers.air_quality_server import AirQualityServer
 
-server = RoutingServer()
+server = AirQualityServer()
 
-# Calculate route
-route = await server.calculate_route(
-    origin_lat=40.7484, origin_lon=-73.9857,
-    dest_lat=40.7829, dest_lon=-73.9654,
-    mode="driving"
-)
+# Current air quality
+air_quality = await server.get_current_air_quality(location="Beijing")
+print(f"AQI: {air_quality.aqi} ({air_quality.aqi_description})")
+print(f"PM2.5: {air_quality.pm2_5} μg/m³")
+print(f"Health: {air_quality.health_recommendation}")
 
-print(f"Distance: {route.distance_meters}m")
-print(f"Duration: {route.duration_seconds}s")
-print(f"Steps: {len(route.steps)}")
-
-await server.close()
-```
-
-### POI Server
-
-```python
-from map_servers.poi_server import POIServer
-
-server = POIServer()
-
-# Find nearby places
-pois = await server.search_nearby(
-    latitude=40.7484,
-    longitude=-73.9857,
-    category="restaurant",
-    radius_meters=2000,
-    limit=5
-)
-
-for poi in pois:
-    print(f"{poi.name} - {poi.distance_meters}m away")
-
-# Text search
-results = await server.search_text("coffee shops", latitude=40.7484, longitude=-73.9857)
+# Air quality forecast
+forecasts = await server.get_air_quality_forecast(location="Delhi", hours=24)
+for forecast in forecasts[:5]:
+    print(f"{forecast.timestamp}: AQI {forecast.aqi}")
 
 await server.close()
 ```
@@ -140,220 +147,133 @@ await server.close()
 ### Using the Agent
 
 ```python
-from agent import MapServicesAgent
+from weather_agent import WeatherServicesAgent
 
-agent = MapServicesAgent()
+agent = WeatherServicesAgent()
 
-# Process natural language queries
-response = await agent.process_query("Find restaurants near Times Square")
+# Natural language queries
+response = await agent.process_query("What's the weather in London?")
+print(response)
+
+response = await agent.process_query("Air quality forecast for Beijing")
 print(response)
 
 # Interactive session
 await agent.interactive_session()
 ```
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
 # Run all tests
 pytest
 
 # Run with coverage
-pytest --cov=map_servers --cov-report=html
+pytest --cov=weather_servers
 
 # Run specific test file
-pytest tests/test_geocoding_server.py -v
-
-# Run specific test
-pytest tests/test_geocoding_server.py::test_forward_geocode -v
+pytest tests/test_forecast_server.py -v
 ```
 
-## 🔧 Server Operations
+## Server Operations
 
-### Geocoding Server Operations
+### Weather Forecast Server
 
-- `forward_geocode(address, limit)` - Convert address to coordinates
-- `reverse_geocode(latitude, longitude)` - Convert coordinates to address
-- `batch_geocode(addresses)` - Geocode multiple addresses at once
+- `get_current_weather(location OR lat/lon)` - Current weather conditions
+- `get_forecast(location OR lat/lon)` - 5-day, 3-hour interval forecast
+- `get_daily_summary(location OR lat/lon)` - 5-day daily summary
 
-### Routing Server Operations
+### Air Quality Server
 
-- `calculate_route(origin_lat, origin_lon, dest_lat, dest_lon, mode)` - Calculate route
-- `calculate_distance_matrix(origins, destinations, mode)` - Distance matrix
-- `get_route_alternatives(origin_lat, origin_lon, dest_lat, dest_lon, alternatives)` - Get alternative routes
+- `get_current_air_quality(location OR lat/lon)` - Current air quality
+- `get_air_quality_forecast(location OR lat/lon, hours)` - AQI forecast
+- `get_pollution_history(location OR lat/lon, start, end)` - Historical data
 
-### POI Server Operations
-
-- `search_nearby(latitude, longitude, radius_meters, category, limit)` - Find nearby places
-- `search_text(query, latitude, longitude, radius_meters, limit)` - Text-based search
-- `get_place_details(place_name)` - Get detailed place information
-- `search_by_category(category, latitude, longitude, radius_meters, min_rating, max_price_level, limit)` - Category search with filters
-
-## 🎨 Features
-
-### MCP Compliance
+## MCP Compliance
 
 All servers follow Model Context Protocol conventions:
+
 - Clear operation definitions
 - Type-safe parameters using Pydantic models
 - Comprehensive error handling
 - Async/await support for scalability
 
-### OpenAI Agents SDK Integration
+## DeepSeek Integration
 
-- Function tools with automatic schema generation
-- Type annotations for parameter validation
-- Docstrings for tool descriptions
-- Compatible with OpenAI and DeepSeek LLMs
-
-### Production-Ready Features
-
-- ✅ Comprehensive unit tests (50+ test cases)
-- ✅ Mock data for development and testing
-- ✅ Async HTTP sessions with connection pooling
-- ✅ Input validation with Pydantic
-- ✅ Error handling and graceful degradation
-- ✅ Rate limiting support (configurable)
-- ✅ Batch operations for efficiency
-
-## 🔌 API Integration
-
-The servers use placeholder/mock data by default. To integrate with real APIs:
-
-### OpenStreetMap (Nominatim) - Free
+The agent uses DeepSeek model via OpenRouter:
 
 ```python
-server = GeocodingServer(
-    base_url="https://nominatim.openstreetmap.org"
-)
+# Configuration in .env
+OPENROUTER_API_KEY=your_key_here
+LLM_MODEL=deepseek/deepseek-r1t2-chimera:free
 ```
 
-### Google Maps API
-
-```python
-# Geocoding
-server = GeocodingServer(
-    api_key="your_google_api_key",
-    base_url="https://maps.googleapis.com/maps/api/geocode"
-)
-
-# POI
-poi_server = POIServer(
-    api_key="your_google_api_key"
-)
-```
-
-### Mapbox
-
-```python
-server = RoutingServer(
-    api_key="your_mapbox_api_key",
-    base_url="https://api.mapbox.com"
-)
-```
-
-### OSRM (Open Source Routing Machine) - Free
-
-```python
-server = RoutingServer(
-    base_url="http://router.project-osrm.org"
-)
-```
-
-## 📊 Project Structure
+## Project Structure
 
 ```
 503PC5/
 ├── README.md                      # This file
-├── SUMMARY.md                     # MCP concepts and analysis
-├── REFLECTION.md                  # Lessons learned
-├── requirements.txt               # Python dependencies
-├── .env.example                   # Environment variables template
-├── agent.py                       # Main agent integration
-├── map_servers/                   # Server implementations
+├── .env                           # API keys (not in git)
+├── .env.example                   # Environment template
+├── weather_agent.py               # Main agent with DeepSeek
+├── weather_servers/               # Server implementations
 │   ├── __init__.py
-│   ├── geocoding_server.py        # Geocoding service
-│   ├── routing_server.py          # Routing service
-│   └── poi_server.py              # POI service
+│   ├── forecast_server.py         # Weather forecasts
+│   └── air_quality_server.py      # Air quality data
 ├── tests/                         # Unit tests
-│   ├── __init__.py
-│   ├── test_geocoding_server.py
-│   ├── test_routing_server.py
-│   └── test_poi_server.py
-└── examples/                      # Demo scripts
-    ├── demo_geocoding.py
-    ├── demo_routing.py
-    ├── demo_poi.py
-    └── demo_full_agent.py
+│   ├── test_forecast_server.py
+│   └── test_air_quality_server.py
+└── requirements.txt               # Python dependencies
 ```
 
-## 🎥 Video Demonstration
+## Dependencies
 
-[Link to screencast video will be here]
+```
+httpx>=0.24.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+```
 
-The screencast demonstrates:
-1. Introduction to the project and MCP concepts
-2. Each map server in action with live queries
-3. The integrated agent handling complex multi-step tasks
-4. Challenges faced and solutions implemented
+## Troubleshooting
 
-## 🤝 Contributing
+### API Key Issues
 
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## 📝 License
-
-This project is created for educational purposes as part of an assignment on Model Context Protocol and OpenAI Agents SDK.
-
-## 🔗 Resources
-
-- [Model Context Protocol Announcement](https://www.anthropic.com/news/model-context-protocol)
-- [OpenAI Agents SDK Documentation](https://openai.github.io/openai-agents-python/)
-- [OpenStreetMap Nominatim API](https://nominatim.openstreetmap.org/)
-- [OSRM Routing Engine](http://project-osrm.org/)
-- [DeepSeek API Documentation](https://platform.deepseek.com/docs)
-
-## ❓ Troubleshooting
-
-### "Module not found" errors
-
+Ensure your `.env` file contains valid keys:
 ```bash
-pip install -r requirements.txt
+OPENWEATHER_API_KEY=your_actual_key
+OPENROUTER_API_KEY=your_actual_key
 ```
 
-### API rate limiting
+### Rate Limiting
 
-The mock implementations avoid this issue. For real APIs, consider:
-- Implementing exponential backoff
-- Using the `MAX_REQUESTS_PER_MINUTE` environment variable
-- Caching frequently accessed data
+Free tier allows 60 calls/minute. If you hit limits:
+- Add delays between requests
+- Cache frequently accessed data
+- Use batch operations where possible
 
-### Tests failing
+### Location Not Found
 
-```bash
-# Ensure you're in the project root
-cd /path/to/503PC5
+Make sure location names are properly formatted:
+- Good: "London", "New York,US", "Tokyo,JP"
+- Bad: "london", "NYC" (may not work)
 
-# Run tests with verbose output
-pytest -v
+## What's NOT Available (Free Tier)
 
-# Check for missing dependencies
-pip install -r requirements.txt
-```
+- Weather alerts and warnings (requires paid subscription)
+- True hourly forecasts (only 3-hour intervals)
+- More than 5 days of forecast
+- UV index data (deprecated)
+- Historical weather data (requires paid subscription)
 
-## 👨‍💻 Author
+## Resources
 
-Created by Abedishere for the MCP and OpenAI Agents SDK assignment.
+- [OpenWeather API Documentation](https://openweathermap.org/api)
+- [OpenRouter Documentation](https://openrouter.ai/docs)
+- [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol)
+- [DeepSeek Model](https://www.deepseek.com/)
 
-## 🙏 Acknowledgments
+## License
 
-- Anthropic for developing the Model Context Protocol
-- OpenAI for the Agents SDK
-- OpenStreetMap community for free mapping data
-- OSRM project for open-source routing
+Created for educational purposes as part of an MCP and OpenAI Agents SDK assignment.
