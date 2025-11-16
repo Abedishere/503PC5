@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
+venv/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -20,46 +23,26 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual environments
-venv/
-env/
-ENV/
-.venv
+# Jupyter
+.ipynb_checkpoints
+*.ipynb_checkpoints
+
+# Environment - IMPORTANT: Keep .env in repo for this assignment
+# .env
 
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 *~
+
+# OS
 .DS_Store
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-*.cover
-.hypothesis/
-.tox/
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-logs/
-
-# Documentation builds
-docs/_build/
-site/
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
+Thumbs.db
 
 # Project specific
+*.mkv
 *.mp4
-*.mov
-screencast.*
+Video Demo*
