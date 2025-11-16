@@ -27,8 +27,10 @@ wheels/
 .ipynb_checkpoints
 *.ipynb_checkpoints
 
-# Environment - IMPORTANT: Keep .env in repo for this assignment
-# .env
+# Environment - NEVER commit API keys!
+.env
+.env.local
+.env.*.local
 
 # IDE
 .vscode/
