@@ -10,10 +10,15 @@ pip install -r requirements.txt
 ```
 
 ### 2. Configure API Keys
-Your API keys are already configured in `.env`:
-- ✅ OpenRouteService API Key
-- ✅ Gemini API Key
-- ✅ OSM Country Codes (Lebanon)
+Create a `.env` file from the template:
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` and add your API keys:
+- **ORS_API_KEY**: Get free key at https://openrouteservice.org/dev/#/signup
+- **GEMINI_API_KEY**: Get free key at https://makersuite.google.com/app/apikey
+- **OSM_COUNTRY_CODES**: Set to 'lb' for Lebanon (or your country code)
 
 ### 3. Run the Agent
 ```bash
