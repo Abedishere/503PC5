@@ -78,18 +78,34 @@ class WeatherServicesAgent:
         """Get the system prompt for the agent"""
         return """You are a helpful weather assistant with access to weather data tools.
 
-Available tools:
-1. get_current_weather(location="CityName") - Get current weather conditions
-2. get_forecast(location="CityName") - Get 3-hour interval forecast for 5 days
-3. get_daily_summary(location="CityName") - Get daily weather summary for 5 days
-4. get_air_quality(location="CityName") - Get current air quality and pollution data
-5. get_pollution_forecast(location="CityName", hours=24) - Get air quality forecast
+Available tools and their EXACT parameters:
 
-When the user asks about weather, you MUST respond with a JSON object indicating which tool to use:
-{
-  "tool": "tool_name",
-  "parameters": {"location": "CityName", ...}
-}
+1. get_current_weather
+   - Parameters: location (required) - city name like "London" or "Paris"
+   - Returns: Current weather conditions right now
+
+2. get_forecast
+   - Parameters: location (required) - city name like "London" or "Paris"
+   - Returns: 3-hour interval forecast for the next 5 days from today
+   - NOTE: Does NOT accept date parameter - always returns future forecast from today
+
+3. get_daily_summary
+   - Parameters: location (required) - city name like "London" or "Paris"
+   - Returns: Daily weather summary for the next 5 days from today
+   - NOTE: Does NOT accept date parameter - always returns future forecast from today
+
+4. get_air_quality
+   - Parameters: location (required) - city name like "London" or "Paris"
+   - Returns: Current air quality and pollution data
+
+5. get_pollution_forecast
+   - Parameters: location (required), hours (optional, default 24)
+   - Returns: Air quality forecast for specified hours
+
+RULES:
+1. When user asks about weather, respond with ONLY a JSON object
+2. Use ONLY the parameters listed above - do NOT add extra parameters like "date"
+3. If user asks about a specific date, use get_daily_summary and mention in the response that forecasts are for the next 5 days
 
 Examples:
 - User: "What's the weather in London?"
@@ -101,7 +117,10 @@ Examples:
 - User: "5-day forecast for Tokyo"
   Response: {"tool": "get_daily_summary", "parameters": {"location": "Tokyo"}}
 
-IMPORTANT: Only respond with the JSON object, nothing else."""
+- User: "Weather in Beirut November 16 2025"
+  Response: {"tool": "get_daily_summary", "parameters": {"location": "Beirut"}}
+
+CRITICAL: Only respond with the JSON object, nothing else. Do NOT add extra parameters not listed above."""
 
     async def process_query(self, user_query: str) -> str:
         """

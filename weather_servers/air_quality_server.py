@@ -126,10 +126,11 @@ class AirQualityServer:
         Returns:
             Current air quality data
 
-        Example:
-            >>> air_quality = await server.get_current_air_quality(location="Beijing")
-            >>> print(f"AQI: {air_quality.aqi} ({air_quality.aqi_description})")
-            >>> print(f"PM2.5: {air_quality.pm2_5} μg/m³")
+        Example::
+
+            air_quality = await server.get_current_air_quality(location="Beijing")
+            print(f"AQI: {air_quality.aqi} ({air_quality.aqi_description})")
+            print(f"PM2.5: {air_quality.pm2_5} μg/m³")
         """
         # Get coordinates if location provided
         if location and not (latitude and longitude):
@@ -193,10 +194,11 @@ class AirQualityServer:
         Returns:
             List of air quality forecasts
 
-        Example:
-            >>> forecasts = await server.get_air_quality_forecast(location="Delhi", hours=48)
-            >>> for forecast in forecasts[:5]:
-            ...     print(f"{forecast.timestamp}: AQI {forecast.aqi}")
+        Example::
+
+            forecasts = await server.get_air_quality_forecast(location="Delhi", hours=48)
+            for forecast in forecasts[:5]:
+                print(f"{forecast.timestamp}: AQI {forecast.aqi}")
         """
         # Get coordinates if location provided
         if location and not (latitude and longitude):
@@ -259,15 +261,16 @@ class AirQualityServer:
         Returns:
             List of historical air quality data
 
-        Example:
-            >>> import time
-            >>> end = int(time.time())
-            >>> start = end - 86400  # 24 hours ago
-            >>> history = await server.get_pollution_history(
-            ...     location="London",
-            ...     start_timestamp=start,
-            ...     end_timestamp=end
-            ... )
+        Example::
+
+            import time
+            end = int(time.time())
+            start = end - 86400  # 24 hours ago
+            history = await server.get_pollution_history(
+                location="London",
+                start_timestamp=start,
+                end_timestamp=end
+            )
         """
         # Get coordinates if location provided
         if location and not (latitude and longitude):

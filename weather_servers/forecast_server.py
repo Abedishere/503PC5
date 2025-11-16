@@ -97,9 +97,10 @@ class WeatherForecastServer:
         Returns:
             Current weather data
 
-        Example:
-            >>> weather = await server.get_current_weather(location="London")
-            >>> print(f"Temperature: {weather.temperature}°C")
+        Example::
+
+            weather = await server.get_current_weather(location="London")
+            print(f"Temperature: {weather.temperature}°C")
         """
         session = await self._get_session()
 
@@ -156,10 +157,11 @@ class WeatherForecastServer:
         Returns:
             List of 3-hour interval forecasts (up to 40 data points = 5 days)
 
-        Example:
-            >>> forecasts = await server.get_forecast(location="Paris")
-            >>> for forecast in forecasts[:3]:
-            ...     print(f"{forecast.timestamp}: {forecast.temperature}°C")
+        Example::
+
+            forecasts = await server.get_forecast(location="Paris")
+            for forecast in forecasts[:3]:
+                print(f"{forecast.timestamp}: {forecast.temperature}°C")
         """
         session = await self._get_session()
 
@@ -220,10 +222,11 @@ class WeatherForecastServer:
         Returns:
             List of daily summaries (up to 5 days)
 
-        Example:
-            >>> forecasts = await server.get_daily_summary(location="Tokyo")
-            >>> for forecast in forecasts:
-            ...     print(f"{forecast.date.date()}: {forecast.temp_min}-{forecast.temp_max}°C")
+        Example::
+
+            forecasts = await server.get_daily_summary(location="Tokyo")
+            for forecast in forecasts:
+                print(f"{forecast.date.date()}: {forecast.temp_min}-{forecast.temp_max}°C")
         """
         session = await self._get_session()
 
